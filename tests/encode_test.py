@@ -1,8 +1,7 @@
 from django.test import TestCase
 
-from django_serialize_model_graph import encode, decode
-
-from .models import Entity
+from django_serialize_model_graph import encode, decode, encode_with_relatives
+from .models import Entity, RelatedEntity
 
 
 class TestEncode(TestCase):
@@ -18,3 +17,17 @@ class TestEncode(TestCase):
         decoded_entity = decode(encoded_entity)
 
         self.assertEqual(decoded_entity.key, "value")
+
+
+class TestEncodeWithRelatives(TestCase):
+    def test_should_encode_with_simple_relative(self):
+        entity = Entity()
+        entity.save()
+        related_entity = RelatedEntity(entity=entity)
+        related_entity.save()
+        encoded_entity = encode_with_relatives(entity)
+        entity.delete()
+        self.assertEqual(RelatedEntity.objects.count(), 0)
+        decoded_entity = decode(encoded_entity)
+
+        self.assertEqual(decoded_entity.related_entities.all()[0].text, 'some text')
