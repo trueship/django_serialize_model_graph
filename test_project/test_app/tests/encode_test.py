@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from django_serialize_model_graph import encode, decode, encode_with_relatives
-from .models import Entity, RelatedEntity
+from test_app.models import Entity, RelatedEntity
 
 
 class TestEncode(TestCase):
@@ -30,4 +30,5 @@ class TestEncodeWithRelatives(TestCase):
         self.assertEqual(RelatedEntity.objects.count(), 0)
         decoded_entity = decode(encoded_entity)
 
-        self.assertEqual(decoded_entity.related_entities.all()[0].text, 'some text')
+        related_text = decoded_entity.related_entities.all()[0].text
+        self.assertEqual(related_text, 'some text')
