@@ -1,10 +1,8 @@
 from setuptools import setup
 
-from django_serialize_model_graph import __version__
-
 
 setup(name='django_serialize_model_graph',
-      version=__version__,
+      version='0.0.1',
       description='Django Serialize Model Graph -- utility for serializing graph of models for django.',
       author='Konstantine Rybnikov',
       author_email='k-bx@k-bx.com',
