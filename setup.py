@@ -8,5 +8,4 @@ setup(name='django_serialize_model_graph',
       author_email='k-bx@k-bx.com',
       url='https://bitbucket.org/k_bx/django_serialize_model_graph/',
       license='BSD',
-      packages=['django_serialize_model_graph'],
-      test_suite='nose.collector')
+      packages=['django_serialize_model_graph'])

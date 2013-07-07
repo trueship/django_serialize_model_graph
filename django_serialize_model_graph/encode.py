@@ -1,15 +1,20 @@
 import json
+import logging
 
 from django.core import serializers
 from django.db import router
 from django.db.models.deletion import Collector
 
+from django_serialize_model_graph.entities import EncodedEntity
+
+log = logging.getLogger(__name__)
+
 
 def encode(entity):
     """Encode a single object."""
     json_str = serializers.serialize('json', [entity])
-    data = json.loads(json_str)[0]
-    return data
+    encoded_entity = EncodedEntity(entity_data=json.loads(json_str)[0])
+    return encoded_entity
 
 
 def encode_with_relatives(entity):
@@ -25,7 +30,7 @@ def encode_with_relatives(entity):
     make sense as a default option for "graph of object and it's
     relatives".
 
-    :returns: list(entities)
+    :returns: :class:`EncodedEntity` object
 
     """
     def always_false(*args, **kw):
@@ -35,8 +40,26 @@ def encode_with_relatives(entity):
     collector = Collector(using=using)
     collector.can_fast_delete = always_false
     collector.collect([entity])
-    return_value = []
+
+    entities = []
     for model, instances in collector.data.items():
         for instance in instances:
-            return_value.append(encode(instance))
-    return return_value
+            entities.append(instance)
+
+    json_str = serializers.serialize('json', entities)
+    parsed_data = json.loads(json_str)
+    entity_index = find_entity_index(entity, parsed_data)
+    entity_data = parsed_data.pop(entity_index)
+    related_entities_datas = parsed_data
+    encoded_entity = (
+        EncodedEntity(entity_data=entity_data,
+                      related_entities_datas=related_entities_datas))
+    return encoded_entity
+
+
+def find_entity_index(entity, entity_datas):
+    for i, entity_data in enumerate(entity_datas):
+        entity_model_str = entity.__class__.__name__.lower()
+        entity_data_model_str = entity_data['model'].split('.')[1]
+        if entity_model_str == entity_data_model_str:
+            return i

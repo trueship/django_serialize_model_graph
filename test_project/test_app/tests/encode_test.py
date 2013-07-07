@@ -1,7 +1,13 @@
-from django.test import TestCase
+import json
+import logging
 
+from django.test import TestCase
+from django.core import serializers
 from django_serialize_model_graph import encode, decode, encode_with_relatives
+from django_serialize_model_graph.encode import find_entity_index
 from test_app.models import Entity, RelatedEntity
+
+log = logging.getLogger(__name__)
 
 
 class TestEncode(TestCase):
@@ -25,11 +31,25 @@ class TestEncodeWithRelatives(TestCase):
         entity.save()
         related_entity = RelatedEntity(entity=entity)
         related_entity.save()
-        encoded_entities = encode_with_relatives(entity)
+        encoded_entity = encode_with_relatives(entity)
+        log.debug(encoded_entity.entity_data)
         entity.delete()
         self.assertEqual(RelatedEntity.objects.count(), 0)
-        decoded_entities = map(decode, encoded_entities)
+        decoded_entity = decode(encoded_entity)
 
-        self.assertEqual(len(decoded_entities), 2)
-        # related_text = decoded_entity.related_entities.all()[0].text
-        # self.assertEqual(related_text, 'some text')
+        log.debug(decoded_entity)
+        self.assertTrue(isinstance(decoded_entity, Entity))
+        self.assertEqual(len(decoded_entity.related_entities.all()), 2)
+
+
+class TestFindEntityIndex(TestCase):
+    def test_should_find_entity_in_parsed_data(self):
+        entity = Entity(pk=1)
+        parsed_data = self.get_parsed_data([RelatedEntity(pk=2), entity, RelatedEntity(pk=3)])
+        index = find_entity_index(entity, parsed_data)
+        self.assertEqual(index, 1)
+
+    def get_parsed_data(self, entities):
+        json_str = serializers.serialize('json', entities)
+        parsed_data = json.loads(json_str)
+        return parsed_data
