@@ -9,7 +9,7 @@ log = logging.getLogger(__name__)
 
 def decode(encoded_entity):
     datas = [encoded_entity.entity_data] + encoded_entity.related_entities_datas
-    model_objects = list(serializers.deserialize('json', json.dumps(datas)))
+    model_objects = [x.object for x in list(serializers.deserialize('json', json.dumps(datas)))]
     bind_related_objects(model_objects)
     model_object_index = encoded_entity_index(encoded_entity, model_objects)
     model_object = model_objects.pop(model_object_index)
@@ -20,8 +20,7 @@ def decode(encoded_entity):
 def encoded_entity_index(encoded_entity, model_objects):
     log.debug(encoded_entity)
     log.debug(model_objects)
-    for i, deserialized_model_object in enumerate(model_objects):
-        model_object = deserialized_model_object.object
+    for i, model_object in enumerate(model_objects):
         if model_object_corresponds_encoded_entity(model_object, encoded_entity):
             return i
     return None
