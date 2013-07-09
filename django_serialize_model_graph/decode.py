@@ -9,7 +9,9 @@ log = logging.getLogger(__name__)
 
 def decode(encoded_entity):
     datas = [encoded_entity.entity_data] + encoded_entity.related_entities_datas
-    model_objects = [x.object for x in list(serializers.deserialize('json', json.dumps(datas)))]
+    model_objects = [
+        x.object for x
+        in list(serializers.deserialize('json', json.dumps(datas)))]
     bind_related_objects(model_objects)
     model_object_index = encoded_entity_index(encoded_entity, model_objects)
     model_object = model_objects.pop(model_object_index)
@@ -76,14 +78,64 @@ def get_model_object_foreign_key_fields(model_object):
             ForeignKeyField(
                 model_object,
                 field.name,
-                field.rel.to._meta.object_name.lower()))
+                field.rel.to._meta.object_name.lower(),
+                field.related.get_accessor_name()))
     return return_value
+
+
+class MockDescriptor(object):
+    def __init__(self, original_descriptor, mocked_data_by_instance):
+        self.mocked_data_by_instance = mocked_data_by_instance
+        self.original_descriptor = original_descriptor
+
+    def __get__(self, instance, owner):
+        if instance is not None:
+            return self.mocked_data_by_instance.get(id(instance))
+        return self.original_descriptor.__get__(instance, owner)
+
+    def __set__(self, instance, value):
+        return self.original_descriptor.__set__(instance, value)
+
+    def add_mocked_data_by_instance(self, instance, data):
+        if self.mocked_data_by_instance.get(id(instance)) is not None:
+            self.mocked_data_by_instance[id(instance)].add(data)
+        else:
+            self.mocked_data_by_instance[id(instance)] = PureQuerySet([data])
+
+
+def create_caching_proxy_getattr():
+    def new_f():
+        pass
+    return new_f
 
 
 def bind_related_objects_for_foreign_key(foreign_key_field, model_objects):
     for model_object in model_objects:
-        if foreign_key_field_points_to_model_object(foreign_key_field, model_object):
-            setattr(foreign_key_field.model_object, foreign_key_field.foreign_model_name, model_object)
+        if foreign_key_field_points_to_model_object(foreign_key_field,
+                                                    model_object):
+            setattr(
+                foreign_key_field.model_object,
+                foreign_key_field.foreign_model_name,
+                model_object)
+
+            current_descriptor = (
+                model_object
+                .__class__
+                .__dict__[foreign_key_field.accessor_name])
+            if isinstance(current_descriptor, MockDescriptor):
+                (current_descriptor
+                 .add_mocked_data_by_instance(model_object,
+                                              foreign_key_field.model_object))
+            else:
+                mocked_data_by_instance = {
+                    id(model_object): PureQuerySet(
+                        [foreign_key_field.model_object])
+                }
+                mock_descriptor = (
+                    MockDescriptor(current_descriptor, mocked_data_by_instance))
+                setattr(model_object.__class__,
+                        foreign_key_field.accessor_name,
+                        mock_descriptor)
 
 
 def foreign_key_field_points_to_model_object(foreign_key_field, model_object):
@@ -97,9 +149,25 @@ def get_model_object_model_name(model_object):
 
 
 class ForeignKeyField(object):
-    def __init__(self, model_object, field_name, foreign_model_name):
+    def __init__(self, model_object, field_name, foreign_model_name,
+                 accessor_name):
         self.model_object = model_object
         self.field_name = field_name
         self.foreign_model_name = foreign_model_name
         self.related_pk = getattr(model_object, field_name + '_id')
+        self.accessor_name = accessor_name
         super(ForeignKeyField, self).__init__()
+
+
+class PureQuerySet(object):
+    def __init__(self, data):
+        self.data = data
+
+    def all(self):
+        return self.data
+
+    def add(self, item):
+        self.data.append(item)
+
+    def __repr__(self):
+        return u'<PureQuerySet with {} objects>'.format(len(self.data))

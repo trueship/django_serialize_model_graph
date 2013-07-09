@@ -2,3 +2,4 @@ syntax: glob
 *.pyc
 *.egg-info/
 *.sqlite
+.dir-locals.el

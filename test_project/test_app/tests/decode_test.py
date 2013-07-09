@@ -7,7 +7,7 @@ from django_serialize_model_graph.decode import get_model_object_model_name
 from django_serialize_model_graph.decode import foreign_key_field_points_to_model_object
 from django_serialize_model_graph.decode import ForeignKeyField
 from test_app.models import Entity, RelatedEntity
-from test_app.models import Entity2, RelatedEntity2
+from test_app.models import RelatedEntity2
 
 
 class TestPermutateItemAndRest(TestCase):
@@ -38,7 +38,8 @@ class TestForeignKeyFieldPointsToModelObject(TestCase):
         foreign_key_field = ForeignKeyField(
             related_entity,
             'entity',
-            'entity')
+            'entity',
+            'related_entities')
 
         self.assertTrue(
             foreign_key_field_points_to_model_object(

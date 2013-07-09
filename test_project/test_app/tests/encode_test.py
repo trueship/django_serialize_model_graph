@@ -31,6 +31,9 @@ class TestEncodeWithRelatives(TestCase):
         entity.save()
         related_entity = RelatedEntity(entity=entity)
         related_entity.save()
+        another_related_entity = RelatedEntity(entity=entity)
+        another_related_entity.save()
+        self.assertEqual(len(RelatedEntity.objects.all()), 2)
         encoded_entity = encode_with_relatives(entity)
         log.debug(encoded_entity.entity_data)
         entity.delete()
@@ -45,7 +48,8 @@ class TestEncodeWithRelatives(TestCase):
 class TestFindEntityIndex(TestCase):
     def test_should_find_entity_in_parsed_data(self):
         entity = Entity(pk=1)
-        parsed_data = self.get_parsed_data([RelatedEntity(pk=2), entity, RelatedEntity(pk=3)])
+        parsed_data = self.get_parsed_data(
+            [RelatedEntity(pk=2), entity, RelatedEntity(pk=3)])
         index = find_entity_index(entity, parsed_data)
         self.assertEqual(index, 1)
 
@@ -53,3 +57,36 @@ class TestFindEntityIndex(TestCase):
         json_str = serializers.serialize('json', entities)
         parsed_data = json.loads(json_str)
         return parsed_data
+
+
+class Descriptor(object):
+    def __set__(self, obj, val):
+        pass
+        # print '> __set__'
+
+    def __get__(self, obj, objtype):
+        # print '> __get__'
+        return 10
+
+
+class ClassWithDescriptor(object):
+    foo = Descriptor()
+
+
+class MockDescriptor(object):
+    def __set__(self, obj, val):
+        # print '> __set__ in mock'
+        pass
+
+    def __get__(self, obj, objtype):
+        # print '> __get__ in mock'
+        return 20
+
+
+class TestReplaceDescriptor(TestCase):
+    def test_should_replace_simple_descriptor(self):
+        instance = ClassWithDescriptor()
+
+        setattr(instance.__class__, 'foo', MockDescriptor())
+
+        self.assertEqual(instance.foo, 20)
