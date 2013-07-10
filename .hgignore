@@ -4,3 +4,4 @@ syntax: glob
 *.sqlite
 .dir-locals.el
 dist/
+docs/_build/
