@@ -87,10 +87,15 @@ their relatives). So, semantics of `django_serialize_model_graph`
 should match default django semantics for object deletion, which seems
 nice to me.
 
-Contents:
+The `entity.related_entities.all()` works in a bit hardcore manner, by
+substituting `Entity.__class__.related_entities` descriptor for it's
+own proxy. If you know better ways -- please share them with me.
 
-.. toctree::
-   :maxdepth: 2
+..
+   Contents:
+
+   .. toctree::
+      :maxdepth: 2
 
 
 
