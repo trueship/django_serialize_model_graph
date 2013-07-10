@@ -3,3 +3,4 @@ syntax: glob
 *.egg-info/
 *.sqlite
 .dir-locals.el
+dist/

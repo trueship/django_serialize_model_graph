@@ -4,6 +4,8 @@ import logging
 from django.core import serializers
 from django.db.models.fields.related import ForeignKey
 
+from django_serialize_model_graph.entities import EncodedEntity
+
 log = logging.getLogger(__name__)
 
 
@@ -17,6 +19,11 @@ def decode(encoded_entity):
     model_object = model_objects.pop(model_object_index)
     del model_objects  # since it's meaning changed after pop
     return model_object
+
+
+def decode_from_dict(d):
+    encoded_entity = EncodedEntity.from_dict()
+    return decode(encoded_entity)
 
 
 def encoded_entity_index(encoded_entity, model_objects):

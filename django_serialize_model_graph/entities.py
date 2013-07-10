@@ -3,7 +3,7 @@ class EncodedEntity(object):
     related data.
 
     """
-    def __init__(self, entity_data, related_entities_datas=[]):
+    def __init__(self, entity_data, related_entities_datas=None):
         """Constructor.
 
         :param entity_data:
@@ -13,6 +13,8 @@ class EncodedEntity(object):
             represents result of
         :type related_entities_datas: list of dict
         """
+        if related_entities_datas is None:
+            related_entities_datas = []
         self.entity_data = entity_data
         self.related_entities_datas = related_entities_datas
 
@@ -24,4 +26,16 @@ class EncodedEntity(object):
 
     def get_entity_model(self):
         return_value = self.entity_data['model'].split('.')[1]
+        return return_value
+
+    def to_dict(self):
+        return_value = {
+            'entity_data': self.entity_data,
+            'related_entities_datas': self.related_entities_datas,
+        }
+        return return_value
+
+    @classmethod
+    def from_dict(cls, d):
+        return_value = cls(d['entity_data'], d.get('related_entities_datas'))
         return return_value
