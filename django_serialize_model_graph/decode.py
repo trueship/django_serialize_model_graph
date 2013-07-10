@@ -22,7 +22,7 @@ def decode(encoded_entity):
 
 
 def decode_from_dict(d):
-    encoded_entity = EncodedEntity.from_dict()
+    encoded_entity = EncodedEntity.from_dict(d)
     return decode(encoded_entity)
 
 

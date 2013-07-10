@@ -1,5 +1,7 @@
 from django.test import TestCase
 
+from django_serialize_model_graph import encode
+from django_serialize_model_graph import decode_from_dict
 from django_serialize_model_graph.decode import bind_related_objects
 from django_serialize_model_graph.decode import permutate_item_and_rest
 from django_serialize_model_graph.decode import get_model_object_foreign_key_fields
@@ -8,6 +10,15 @@ from django_serialize_model_graph.decode import foreign_key_field_points_to_mode
 from django_serialize_model_graph.decode import ForeignKeyField
 from test_app.models import Entity, RelatedEntity
 from test_app.models import RelatedEntity2
+
+
+class TestDecodeFromDict(TestCase):
+    def test_should_decode_simple_object_from_dict(self):
+        entity = Entity(pk=4)
+        encoded_entity = encode(entity)
+        d = encoded_entity.to_dict()
+        decoded_entity = decode_from_dict(d)
+        self.assertEqual(decoded_entity.pk, 4)
 
 
 class TestPermutateItemAndRest(TestCase):
