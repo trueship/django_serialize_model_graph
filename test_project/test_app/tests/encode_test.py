@@ -5,6 +5,7 @@ from django.test import TestCase
 from django.core import serializers
 from django_serialize_model_graph import encode, decode, encode_with_relatives
 from django_serialize_model_graph.encode import find_entity_index
+from test_app.tests.factories import create_entity, create_related_entity
 from test_app.models import Entity, RelatedEntity
 
 log = logging.getLogger(__name__)
@@ -27,12 +28,9 @@ class TestEncode(TestCase):
 
 class TestEncodeWithRelatives(TestCase):
     def test_should_encode_with_simple_relative(self):
-        entity = Entity()
-        entity.save()
-        related_entity = RelatedEntity(entity=entity)
-        related_entity.save()
-        another_related_entity = RelatedEntity(entity=entity)
-        another_related_entity.save()
+        entity = create_entity()
+        create_related_entity(entity=entity)
+        create_related_entity(entity=entity)
         self.assertEqual(len(RelatedEntity.objects.all()), 2)
         encoded_entity = encode_with_relatives(entity)
         log.debug(encoded_entity.entity_data)
@@ -43,6 +41,9 @@ class TestEncodeWithRelatives(TestCase):
         log.debug(decoded_entity)
         self.assertTrue(isinstance(decoded_entity, Entity))
         self.assertEqual(len(decoded_entity.related_entities.all()), 2)
+
+    def test_when_mocking_related_descriptor_should_keep_old_select_working(self):
+        pass
 
 
 class TestFindEntityIndex(TestCase):
