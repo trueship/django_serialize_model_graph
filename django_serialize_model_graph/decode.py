@@ -97,7 +97,9 @@ class MockDescriptor(object):
 
     def __get__(self, instance, owner):
         if instance is not None:
-            return self.mocked_data_by_instance.get(id(instance))
+            rv = self.mocked_data_by_instance.get(id(instance))
+            if rv is not None:
+                return rv
         return self.original_descriptor.__get__(instance, owner)
 
     def __set__(self, instance, value):
@@ -172,6 +174,9 @@ class PureQuerySet(object):
 
     def all(self):
         return self.data
+
+    def count(self):
+        return len(self.data)
 
     def add(self, item):
         self.data.append(item)

@@ -43,7 +43,18 @@ class TestEncodeWithRelatives(TestCase):
         self.assertEqual(len(decoded_entity.related_entities.all()), 2)
 
     def test_when_mocking_related_descriptor_should_keep_old_select_working(self):
-        pass
+        existing_entity = create_entity()
+        create_related_entity(entity=existing_entity)
+        create_related_entity(entity=existing_entity)
+        entity_to_serialize = create_entity()
+        create_related_entity(entity=entity_to_serialize)
+        create_related_entity(entity=entity_to_serialize)
+        self.assertEqual(existing_entity.related_entities.count(), 2)
+        encoded_entity = encode_with_relatives(entity_to_serialize)
+        entity_to_serialize.delete()
+        decoded_entity = decode(encoded_entity)
+        self.assertEqual(decoded_entity.related_entities.count(), 2)
+        self.assertEqual(existing_entity.related_entities.count(), 2)
 
 
 class TestFindEntityIndex(TestCase):
