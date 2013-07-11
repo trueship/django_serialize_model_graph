@@ -5,7 +5,9 @@ from django.test import TestCase
 from django.core import serializers
 from django_serialize_model_graph import encode, decode, encode_with_relatives
 from django_serialize_model_graph.encode import find_entity_index
-from test_app.tests.factories import create_entity, create_related_entity
+from test_app.tests.factories import create_entity
+from test_app.tests.factories import create_related_entity
+from test_app.tests.factories import create_deep_related_entity
 from test_app.models import Entity, RelatedEntity
 
 log = logging.getLogger(__name__)
@@ -55,6 +57,19 @@ class TestEncodeWithRelatives(TestCase):
         decoded_entity = decode(encoded_entity)
         self.assertEqual(decoded_entity.related_entities.count(), 2)
         self.assertEqual(existing_entity.related_entities.count(), 2)
+
+    def test_should_deserialize_deep_related_entity(self):
+        entity = create_entity()
+        related_entity = create_related_entity(entity=entity)
+        create_deep_related_entity(text='deep', related_entity=related_entity)
+
+        encoded_entity = encode_with_relatives(entity)
+        entity.delete()
+
+        decoded_entity = decode(encoded_entity)
+        deep_relateds = decoded_entity.related_entities.all()[0].deep_related_entities.all()
+        self.assertEqual(len(deep_relateds), 1)
+        self.assertEqual(deep_relateds[0].text, "deep")
 
 
 class TestFindEntityIndex(TestCase):

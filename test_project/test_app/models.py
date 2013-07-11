@@ -18,6 +18,11 @@ class RelatedEntity(models.Model):
                 .format(self.pk, self.text, self.entity_id))
 
 
+class DeepRelatedEntity(models.Model):
+    text = models.TextField()
+    related_entity = models.ForeignKey(RelatedEntity, related_name='deep_related_entities')
+
+
 class Entity2(models.Model):
     data = models.CharField(max_length=50)
 
