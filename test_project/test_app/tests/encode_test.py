@@ -8,6 +8,10 @@ from django_serialize_model_graph.encode import find_entity_index
 from test_app.tests.factories import create_entity
 from test_app.tests.factories import create_related_entity
 from test_app.tests.factories import create_deep_related_entity
+from test_app.tests.factories import create_sort_entity
+from test_app.tests.factories import create_sort_related_entity_a
+from test_app.tests.factories import create_sort_related_entity_b
+from test_app.tests.factories import create_sort_related_entity_c
 from test_app.models import Entity, RelatedEntity
 
 log = logging.getLogger(__name__)
@@ -70,6 +74,22 @@ class TestEncodeWithRelatives(TestCase):
         deep_relateds = decoded_entity.related_entities.all()[0].deep_related_entities.all()
         self.assertEqual(len(deep_relateds), 1)
         self.assertEqual(deep_relateds[0].text, "deep")
+
+    def test_should_sort_related_entities_by_model_name_and_pk(self):
+        entity = create_sort_entity()
+        create_sort_related_entity_a(entity=entity)
+        create_sort_related_entity_b(entity=entity)
+        create_sort_related_entity_c(entity=entity)
+        create_sort_related_entity_c(entity=entity, pk=3)
+        create_sort_related_entity_c(entity=entity, pk=2)
+        encoded = encode_with_relatives(entity)
+
+        pairs = [(x['model'], x['pk']) for x in encoded.related_entities_datas]
+        self.assertEqual(pairs, [('test_app.sortrelatedentitya', 1),
+                                 ('test_app.sortrelatedentityb', 1),
+                                 ('test_app.sortrelatedentityc', 1),
+                                 ('test_app.sortrelatedentityc', 2),
+                                 ('test_app.sortrelatedentityc', 3)])
 
 
 class TestFindEntityIndex(TestCase):

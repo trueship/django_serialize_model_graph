@@ -30,3 +30,19 @@ class Entity2(models.Model):
 class RelatedEntity2(models.Model):
     some_data = models.TextField()
     different_name_link = models.ForeignKey(Entity2)
+
+
+class SortEntity(models.Model):
+    pass
+
+
+class SortRelatedEntityA(models.Model):
+    entity = models.ForeignKey(SortEntity)
+
+
+class SortRelatedEntityB(models.Model):
+    entity = models.ForeignKey(SortEntity)
+
+
+class SortRelatedEntityC(models.Model):
+    entity = models.ForeignKey(SortEntity)

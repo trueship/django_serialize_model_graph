@@ -51,10 +51,16 @@ def encode_with_relatives(entity):
     entity_index = find_entity_index(entity, parsed_data)
     entity_data = parsed_data.pop(entity_index)
     related_entities_datas = parsed_data
+    related_entities_datas = sort_related_entities_datas(related_entities_datas)
     encoded_entity = (
         EncodedEntity(entity_data=entity_data,
                       related_entities_datas=related_entities_datas))
     return encoded_entity
+
+
+def sort_related_entities_datas(related_entities_datas):
+    # return related_entities_datas
+    return sorted(related_entities_datas, key=lambda x: (x['model'], x['pk']))
 
 
 def find_entity_index(entity, entity_datas):
