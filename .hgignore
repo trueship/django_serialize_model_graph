@@ -5,3 +5,4 @@ syntax: glob
 .dir-locals.el
 dist/
 docs/_build/
+build/

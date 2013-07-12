@@ -1,4 +1,4 @@
-import json
+import jsondate as json
 import logging
 
 from django.core import serializers

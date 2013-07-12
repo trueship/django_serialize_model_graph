@@ -2,3 +2,4 @@ Django
 nose
 django-nose
 fabric
+jsondate
