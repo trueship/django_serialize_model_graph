@@ -7,7 +7,7 @@ Welcome to Django Serialize Model Graph's documentation!
 ========================================================
 
 - Project on bitbucket: https://bitbucket.org/k_bx/django_serialize_model_graph
-- Mirror on github: https://github.com/k-bx/django_serialize_model_graph
+- Project on github: https://github.com/trueship/django_serialize_model_graph
 - PyPi page: https://pypi.python.org/pypi/django_serialize_model_graph
 
 Django Serialize Model Graph lets you quickly serialize your django
