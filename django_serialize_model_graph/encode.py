@@ -21,13 +21,13 @@ def encode_with_relatives(entity):
     """Encode entity and it's relatives.
 
     Unlike simple :func:`encode`, this function gathers not only main
-    entity, but also it's relatives, which point into this entity via
+    entity, but also its relatives, which point into this entity via
     `ForeignKey` attribute which `on_delete` is set to `CASCADE`
     option (default in django).
 
     So, you can say, that this function gathers same objects, which
     would be deleted if you'd call `entity.delete()`, which seems to
-    make sense as a default option for "graph of object and it's
+    make sense as a default option for "graph of object and its
     relatives".
 
     :returns: :class:`EncodedEntity` object

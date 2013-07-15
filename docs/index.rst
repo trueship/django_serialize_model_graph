@@ -7,12 +7,12 @@ Welcome to Django Serialize Model Graph's documentation!
 ========================================================
 
 - Project on bitbucket: https://bitbucket.org/k_bx/django_serialize_model_graph
-- Project on github: https://github.com/trueship/django_serialize_model_graph
+- Project on GitHub: https://github.com/trueship/django_serialize_model_graph
 - PyPi page: https://pypi.python.org/pypi/django_serialize_model_graph
 
-Django Serialize Model Graph lets you quickly serialize your django
-object and it's relatives into some dictionary and store it, say, in
-MongoDB, and then later extract it and use just as if it wasn't gone
+Django Serialize Model Graph lets you quickly serialize your Django
+object and its relatives into some dictionary and store it, say, in
+MongoDB, and then later extract it and use just as if it hasn't gone
 anywhere! Here are some example models:
 
 .. code-block:: python
@@ -26,7 +26,7 @@ anywhere! Here are some example models:
         entity = models.ForeignKey(Entity, related_name='related_entities')
 
 So, here's how to use `django_serialize_model_graph` for encoding end
-decoding single entity:
+decoding a single entity:
 
 .. code-block:: python
 
@@ -34,7 +34,7 @@ decoding single entity:
     encoded_entity = encode(entity)
     decoded_entity = decode(encoded_entity)
 
-And here's how to encode and decode entity and it's relatives:
+And here's how to encode and decode entity and its relatives:
 
 .. code-block:: python
 
@@ -57,7 +57,7 @@ And here's how to encode and decode entity and it's relatives:
     print isinstance(decoded_entity, Entity)  # prints 'True'
     print len(decoded_entity.related_entities.all())  #prints '2'
 
-To convert encoded value into dict (to store in MongoDB, for example),
+To convert the encoded value to a dict (to store in MongoDB, for example),
 you should do this:
 
 .. code-block:: python
@@ -65,7 +65,7 @@ you should do this:
     encoded_entity = encode_with_relatives(entity)
     encoded_dict = encoded_entity.to_dict()
 
-To decode from dict you do:
+To decode from a dict you do:
 
 .. code-block:: python
 
@@ -76,19 +76,19 @@ How it works
 ============
 
 To encode and decode entities, `django_serialize_model_graph` uses
-django's `serialization mechanisms
+Django's `serialization mechanisms
 <https://docs.djangoproject.com/en/dev/topics/serialization/>`_. To
 get "related objects", it uses django's
 `django.db.models.deletion.Collector`, which works when you do
-`entity.delete()`. It's main strength is that it looks for objects
-that relate to original object via `ForeignKey` (with
+`entity.delete()`. Its main strength is that it looks for objects
+that relate to the original object via `ForeignKey` (with
 `on_delete=CASCADE`, which is the default) and also collects them (and
 their relatives). So, semantics of `django_serialize_model_graph`
-should match default django semantics for object deletion, which seems
-nice to me.
+should match default Django semantics for object deletion, which seems
+natural.
 
-The `entity.related_entities.all()` works in a bit hardcore manner, by
-substituting `Entity.__class__.related_entities` descriptor for it's
+The `entity.related_entities.all()` works in a bit of a hardcore manner, by
+substituting `Entity.__class__.related_entities` descriptor for its
 own proxy. If you know better ways -- please share them with me.
 
 ..

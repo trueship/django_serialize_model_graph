@@ -1,5 +1,5 @@
 class EncodedEntity(object):
-    """Represent django-model encoded entity and (possibly) it's
+    """Represent django-model encoded entity and (possibly) its
     related data.
 
     """
