@@ -13,7 +13,7 @@ def decode(encoded_entity):
     datas = [encoded_entity.entity_data] + encoded_entity.related_entities_datas
     model_objects = [
         x.object for x
-        in list(serializers.deserialize('json', json.dumps(datas)))]
+        in list(serializers.deserialize('json', json.dumps(datas), ignorenonexistent=True))]
     bind_related_objects(model_objects)
     model_object_index = encoded_entity_index(encoded_entity, model_objects)
     model_object = model_objects.pop(model_object_index)
