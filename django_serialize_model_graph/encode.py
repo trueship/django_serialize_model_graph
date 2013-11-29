@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 def encode(entity):
     """Encode a single object."""
-    json_str = serializers.serialize('json', [entity])
+    json_str = serializers.serialize('json', [entity], use_natural_keys=True)
     encoded_entity = EncodedEntity(entity_data=json.loads(json_str)[0])
     return encoded_entity
 
@@ -46,7 +46,7 @@ def encode_with_relatives(entity):
         for instance in instances:
             entities.append(instance)
 
-    json_str = serializers.serialize('json', entities)
+    json_str = serializers.serialize('json', entities, use_natural_keys=True)
     parsed_data = json.loads(json_str)
     entity_index = find_entity_index(entity, parsed_data)
     entity_data = parsed_data.pop(entity_index)
