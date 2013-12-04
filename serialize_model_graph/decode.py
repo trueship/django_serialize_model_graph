@@ -4,16 +4,16 @@ import logging
 from django.core import serializers
 from django.db.models.fields.related import ForeignKey
 
-from django_serialize_model_graph.entities import EncodedEntity
+from serialize_model_graph.entities import EncodedEntity
 
 log = logging.getLogger(__name__)
 
 
-def decode(encoded_entity):
+def decode(encoded_entity, **kwargs):
     datas = [encoded_entity.entity_data] + encoded_entity.related_entities_datas
     model_objects = [
         x.object for x
-        in list(serializers.deserialize('json', json.dumps(datas), ignorenonexistent=True))]
+        in list(serializers.deserialize('python', datas, ignorenonexistent=True, **kwargs))]
     bind_related_objects(model_objects)
     model_object_index = encoded_entity_index(encoded_entity, model_objects)
     model_object = model_objects.pop(model_object_index)
@@ -21,9 +21,9 @@ def decode(encoded_entity):
     return model_object
 
 
-def decode_from_dict(d):
+def decode_from_dict(d, **kwargs):
     encoded_entity = EncodedEntity.from_dict(d)
-    return decode(encoded_entity)
+    return decode(encoded_entity, **kwargs)
 
 
 def encoded_entity_index(encoded_entity, model_objects):
