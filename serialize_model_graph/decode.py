@@ -2,6 +2,7 @@ import jsondate as json
 import logging
 
 from django.core import serializers
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.fields.related import ForeignKey
 
 from serialize_model_graph.entities import EncodedEntity
@@ -100,7 +101,10 @@ class MockDescriptor(object):
             rv = self.mocked_data_by_instance.get(id(instance))
             if rv is not None:
                 return rv
-        return self.original_descriptor.__get__(instance, owner)
+        try:
+            return self.original_descriptor.__get__(instance, owner)
+        except ObjectDoesNotExist:
+            pass
 
     def __set__(self, instance, value):
         return self.original_descriptor.__set__(instance, value)

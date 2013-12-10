@@ -36,16 +36,15 @@ def encode_with_relatives(entity, **kwargs):
     def always_false(*args, **kw):
         return False
 
+    exclude_models = kwargs.pop('exclude_models', None)
     using = router.db_for_write(entity.__class__, instance=entity)
     collector = Collector(using=using)
     collector.can_fast_delete = always_false
     collector.collect([entity])
-
+    data = filter(lambda x: x[0] not in exclude_models, collector.data.items())
     entities = []
-    for model, instances in collector.data.items():
-        for instance in instances:
-            entities.append(instance)
-
+    for model, instances in data:
+        entities.extend(instances)
     json_str = serializers.serialize('json', entities, use_natural_keys=True, **kwargs)
     parsed_data = json.loads(json_str)
     entity_index = find_entity_index(entity, parsed_data)
