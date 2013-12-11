@@ -1,15 +1,16 @@
 from django.test import TestCase
 
-from django_serialize_model_graph import encode
-from django_serialize_model_graph import decode_from_dict
-from django_serialize_model_graph.decode import bind_related_objects
-from django_serialize_model_graph.decode import permutate_item_and_rest
-from django_serialize_model_graph.decode import get_model_object_foreign_key_fields
-from django_serialize_model_graph.decode import get_model_object_model_name
-from django_serialize_model_graph.decode import foreign_key_field_points_to_model_object
-from django_serialize_model_graph.decode import ForeignKeyField
-from test_app.models import Entity, RelatedEntity
+from serialize_model_graph import encode
+from serialize_model_graph import decode_from_dict
+from serialize_model_graph.decode import bind_related_objects
+from serialize_model_graph.decode import permutate_item_and_rest
+from serialize_model_graph.decode import get_model_object_foreign_key_fields
+from serialize_model_graph.decode import get_model_object_model_name
+from serialize_model_graph.decode import foreign_key_field_points_to_model_object
+from serialize_model_graph.decode import ForeignKeyField
+from test_app.models import Entity, Entity2, RelatedEntity
 from test_app.models import RelatedEntity2
+from test_app.tests.factories import create_entity, create_related_entity
 
 
 class TestDecodeFromDict(TestCase):
@@ -44,13 +45,10 @@ class TestBindRelatedObjects(TestCase):
 
 class TestForeignKeyFieldPointsToModelObject(TestCase):
     def test_simple(self):
-        entity = Entity(pk=1)
-        related_entity = RelatedEntity(entity_id=entity.pk)
+        entity = create_entity()
+        related_entity = create_related_entity(entity_id=entity.pk)
         foreign_key_field = ForeignKeyField(
-            related_entity,
-            'entity',
-            'entity',
-            'related_entities')
+            related_entity, RelatedEntity.entity.field)
 
         self.assertTrue(
             foreign_key_field_points_to_model_object(
@@ -60,7 +58,7 @@ class TestForeignKeyFieldPointsToModelObject(TestCase):
 
 class TestGetModelObjectForeignKeyFields(TestCase):
     def test_should_get_empty_list(self):
-        entity = Entity()
+        entity = Entity2()
 
         self.assertEqual(get_model_object_foreign_key_fields(entity), [])
 

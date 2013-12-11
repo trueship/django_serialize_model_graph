@@ -3,16 +3,22 @@ import logging
 
 from django.test import TestCase
 from django.core import serializers
-from django_serialize_model_graph import encode, decode, encode_with_relatives
-from django_serialize_model_graph.encode import find_entity_index
+from django.utils.unittest import skipIf
+from django.test.utils import override_settings
+from serialize_model_graph import (encode,
+                                   decode, encode_with_relatives,
+                                   encode_with_full_relatives)
+from serialize_model_graph.encode import find_entity_index
 from test_app.tests.factories import create_entity
+from test_app.tests.factories import create_O2O_to_entity
 from test_app.tests.factories import create_related_entity
 from test_app.tests.factories import create_deep_related_entity
 from test_app.tests.factories import create_sort_entity
 from test_app.tests.factories import create_sort_related_entity_a
 from test_app.tests.factories import create_sort_related_entity_b
 from test_app.tests.factories import create_sort_related_entity_c
-from test_app.models import Entity, RelatedEntity
+from test_app.models import Entity, RelatedEntity, FKEntity, OneFromEntity
+
 
 log = logging.getLogger(__name__)
 
@@ -37,7 +43,7 @@ class TestEncodeWithRelatives(TestCase):
         entity = create_entity()
         create_related_entity(entity=entity)
         create_related_entity(entity=entity)
-        self.assertEqual(len(RelatedEntity.objects.all()), 2)
+        self.assertEqual(RelatedEntity.objects.all().count(), 2)
         encoded_entity = encode_with_relatives(entity)
         log.debug(encoded_entity.entity_data)
         entity.delete()
@@ -47,6 +53,7 @@ class TestEncodeWithRelatives(TestCase):
         log.debug(decoded_entity)
         self.assertTrue(isinstance(decoded_entity, Entity))
         self.assertEqual(len(decoded_entity.related_entities.all()), 2)
+        self.assertEqual(RelatedEntity.objects.count(), 0)
 
     def test_when_mocking_related_descriptor_should_keep_old_select_working(self):
         existing_entity = create_entity()
@@ -90,6 +97,88 @@ class TestEncodeWithRelatives(TestCase):
                                  ('test_app.sortrelatedentityc', 1),
                                  ('test_app.sortrelatedentityc', 2),
                                  ('test_app.sortrelatedentityc', 3)])
+
+
+# @skipIf(not FULL_TEST, 'wadofstuff is not installed')
+@override_settings(SERIALIZATION_MODULES={'json': 'serialize_model_graph.full_serializers.django.serializers.json',
+                                          'python': 'serialize_model_graph.full_serializers.django.serializers.python'})
+class TestFullEncode(TestCase):
+
+    def test_full_encode_should_not_contain_entity_id_in_relatives(self):
+        entity = create_entity()
+        create_O2O_to_entity(entity=entity)
+        create_related_entity(entity=entity)
+        create_related_entity(entity=entity)
+        self.assertEqual(RelatedEntity.objects.all().count(), 2)
+        full_encoded_entity = encode_with_full_relatives(entity)
+        encoded_entity = encode_with_relatives(entity)
+        log.debug(encoded_entity.entity_data)
+        log.debug(full_encoded_entity.entity_data)
+        self.assertEqual(full_encoded_entity.entity_data,
+                         encoded_entity.entity_data)
+        self.assertEqual(full_encoded_entity.related_entities_datas,
+                         encoded_entity.related_entities_datas)
+        self.check_fk_relatives_in_data(full_encoded_entity)
+
+        entity.delete()
+        decoded_entity = decode(full_encoded_entity)
+        log.debug(decoded_entity)
+        self.assertTrue(isinstance(decoded_entity, Entity))
+        self.assertEqual(len(decoded_entity.related_entities.all()), 2)
+        self.assertEqual(RelatedEntity.objects.count(), 0)
+
+    def test_full_encode_with_all_fks(self):
+        entity = create_entity()
+        create_O2O_to_entity(entity=entity)
+        create_related_entity(entity=entity)
+        fk_entity = FKEntity.objects.all()[0]
+        self.assertEqual(RelatedEntity.objects.all().count(), 1)
+        full_encoded_entity = encode_with_full_relatives(entity, relations=('all_fks',))
+        self.check_fk_relatives_in_data(full_encoded_entity)
+        entity.delete()
+        fk_entity.delete()
+        decoded_entity = decode(full_encoded_entity)
+        self.assertTrue(isinstance(decoded_entity, Entity))
+        self.assertEqual(decoded_entity.related_entities.count(), 1)
+        self.assertTrue(isinstance(decoded_entity.fk_entity, FKEntity))
+        self.assertFalse(FKEntity.objects.all())
+        self.assertTrue(isinstance(decoded_entity.o2o_entity, OneFromEntity))
+
+    def test_should_work_with_excludes(self):
+        entity = create_entity()
+        create_O2O_to_entity(entity=entity)
+        create_related_entity(entity=entity)
+        encoded_entity = encode_with_full_relatives(entity, relations=('all_fks',), excludes=('o2o_entity',))
+        full_encoded_entity = encode_with_full_relatives(entity, relations=('all_fks',))
+        self.assertFalse('o2o_entity' in encoded_entity.entity_data['fields'])
+        self.assertTrue('o2o_entity' in full_encoded_entity.entity_data['fields'])
+        self.check_entity_can_be_decoded(encoded_entity)
+
+    def test_should_work_with_O2O_reverse(self):
+        entity = create_entity()
+        create_related_entity(entity=entity)
+        encoded_entity = encode_with_full_relatives(entity, relations=('all_fks',), excludes=('o2o_to_entity',))
+        self.check_fk_relatives_in_data(encoded_entity)
+        self.check_entity_can_be_decoded(encoded_entity)
+
+    def test_should_work_with_fk_excludes(self):
+        entity = create_entity()
+        create_O2O_to_entity(entity=entity)
+        create_related_entity(entity=entity)
+        encoded_entity = encode_with_full_relatives(entity, relations=('all_fks',), fk_excludes=('o2o_entity',))
+        full_encoded_entity = encode_with_full_relatives(entity, relations=('all_fks',))
+        self.assertTrue(isinstance(encoded_entity.entity_data['fields']['o2o_entity'], int))
+        self.assertFalse(isinstance(full_encoded_entity.entity_data['fields']['o2o_entity'], int))
+        self.check_entity_can_be_decoded(encoded_entity)
+
+    def check_fk_relatives_in_data(self, encoded_entity):
+        for relative in encoded_entity.related_entities_datas:
+            entity_id = relative['fields']['entity']
+            self.assertTrue(isinstance(entity_id, int))
+
+    def check_entity_can_be_decoded(self, encoded_entity):
+        decoded_entity = decode(encoded_entity)
+        self.assertTrue(isinstance(decoded_entity, Entity))
 
 
 class TestFindEntityIndex(TestCase):

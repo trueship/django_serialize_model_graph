@@ -3,6 +3,8 @@ from django.db import models
 
 class Entity(models.Model):
     key = models.CharField(max_length=50)
+    fk_entity = models.ForeignKey("FKEntity")
+    o2o_entity = models.OneToOneField("OneFromEntity", related_name='entity')
 
     def __unicode__(self):
         return (u"pk={}, key={}, pyid={}"
@@ -46,3 +48,16 @@ class SortRelatedEntityB(models.Model):
 
 class SortRelatedEntityC(models.Model):
     entity = models.ForeignKey(SortEntity)
+
+
+class FKEntity(models.Model):
+    value = models.CharField(max_length=32)
+
+
+class OneToEntity(models.Model):
+    value = models.CharField(max_length=32)
+    entity = models.OneToOneField("Entity", related_name='o2o_to_entity')
+
+
+class OneFromEntity(models.Model):
+    value = models.CharField(max_length=32)

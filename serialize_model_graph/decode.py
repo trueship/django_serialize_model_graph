@@ -1,4 +1,3 @@
-import jsondate as json
 import logging
 
 from django.core import serializers
@@ -82,12 +81,7 @@ def get_model_object_foreign_key_fields(model_object):
     fields = [x for x in fields if isinstance(x, ForeignKey)]
     return_value = []
     for field in fields:
-        return_value.append(
-            ForeignKeyField(
-                model_object,
-                field.name,
-                field.rel.to._meta.object_name.lower(),
-                field.related.get_accessor_name()))
+        return_value.append(ForeignKeyField(model_object, field))
     return return_value
 
 
@@ -162,13 +156,13 @@ def get_model_object_model_name(model_object):
 
 
 class ForeignKeyField(object):
-    def __init__(self, model_object, field_name, foreign_model_name,
-                 accessor_name):
+    def __init__(self, model_object, field):
+        field_name = field.name
         self.model_object = model_object
         self.field_name = field_name
-        self.foreign_model_name = foreign_model_name
+        self.foreign_model_name = field.rel.to._meta.object_name.lower()
         self.related_pk = getattr(model_object, field_name + '_id')
-        self.accessor_name = accessor_name
+        self.accessor_name = field.related.get_accessor_name()
         super(ForeignKeyField, self).__init__()
 
 

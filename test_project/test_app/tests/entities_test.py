@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from django_serialize_model_graph.entities import EncodedEntity
+from serialize_model_graph.entities import EncodedEntity
 
 
 class TestEncodedEntity(TestCase):

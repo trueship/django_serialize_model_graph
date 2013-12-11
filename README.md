@@ -1,7 +1,7 @@
-Django Serialize Model Graph
+Serialize Model Graph
 ============================
 
-With `django_serialize_model_graph`, you can serialize your model (and
+With `serialize_model_graph`, you can serialize your model (and
 its relatives) into a data structure that can be stored somewhere,
 and then re-stored later.
 
@@ -18,3 +18,6 @@ INSTALLED_APPS = (
 )
 
 Documentation can be found at [ReadTheDocs](https://django_serialize_model_graph.readthedocs.org/en/latest/).
+
+Works via full-serializers, based on wadofstuff-django-serializers for full serialization
+Documentation can be found at [ReadTheDocs](http://code.google.com/p/wadofstuff/wiki/DjangoFullSerializers).
