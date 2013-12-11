@@ -8,4 +8,5 @@ setup(name='django-serialize-model-graph',
       author_email='k-bx@k-bx.com',
       url='https://bitbucket.org/k_bx/django_serialize_model_graph/',
       license='BSD',
-      packages=['serialize_model_graph'])
+      packages=['serialize_model_graph'],
+      include_package_data=True)
