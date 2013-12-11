@@ -34,8 +34,10 @@ def encode_with_relatives(entity, **kwargs):
     :returns: :class:`EncodedEntity` object
 
     """
-    entities, models = collect_related_instanses(entity, **kwargs)
-    parsed_data = serializers.serialize('python', entities, use_natural_keys=True, **kwargs)
+    exclude_models = kwargs.pop('exclude_models', None)
+    entities, models = collect_related_instanses(entity, exclude_models)
+    parsed_data = serializers.serialize('json', entities, use_natural_keys=True, **kwargs)
+    parsed_data = json.loads(parsed_data)
     return create_encoded_entity(parsed_data, entity)
 
 
@@ -43,8 +45,8 @@ def encode_with_full_relatives(entity, **kwargs):
     """ Can be used with custom-serializers, adds necessary fk_excludes
     to serialiser not to double some data when full serialization
     """
-    entities, models = collect_related_instanses(entity, **kwargs)
-
+    exclude_models = kwargs.pop('exclude_models', None)
+    entities, models = collect_related_instanses(entity, exclude_models)
     fk_excludes = kwargs.pop('fk_excludes', set())
     if fk_excludes:
         fk_excludes = set(fk_excludes)
@@ -52,15 +54,16 @@ def encode_with_full_relatives(entity, **kwargs):
         fk_excludes.update(map(attrgetter('field.name'),
                            model._meta.get_all_related_objects()))
     kwargs['fk_excludes'] = fk_excludes
-    parsed_data = serializers.serialize('python', entities, use_natural_keys=True, **kwargs)
+    parsed_data = serializers.serialize('json', entities, use_natural_keys=True, **kwargs)
+    parsed_data = json.loads(parsed_data)
     return create_encoded_entity(parsed_data, entity)
 
 
-def collect_related_instanses(entity, **kwargs):
+def collect_related_instanses(entity, exclude_models=None):
     def always_false(*args, **kw):
         return False
 
-    exclude_models = kwargs.pop('exclude_models', [])
+    exclude_models = exclude_models or []
     using = router.db_for_write(entity.__class__, instance=entity)
     collector = Collector(using=using)
     collector.can_fast_delete = always_false

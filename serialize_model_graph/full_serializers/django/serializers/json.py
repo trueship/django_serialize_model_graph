@@ -1,10 +1,10 @@
 """
 Serialize data to/from JSON
 """
-import json
 from python import Serializer as PythonSerializer
-from django.core.serializers.json import Deserializer as JSONDeserializer, \
-    DjangoJSONEncoder
+from django.core.serializers.json import (json as simplejson,
+                                          Deserializer as JSONDeserializer,
+                                          DjangoJSONEncoder)
 
 
 class Serializer(PythonSerializer):
@@ -13,7 +13,7 @@ class Serializer(PythonSerializer):
     """
     def end_serialization(self):
         """Output a JSON encoded queryset."""
-        json.dump(self.objects, self.stream, cls=DjangoJSONEncoder, **self.options)
+        simplejson.dump(self.objects, self.stream, cls=DjangoJSONEncoder, **self.options)
 
     def getvalue(self):
         """
