@@ -303,7 +303,7 @@ def Deserializer(object_list, **options):
             # Handle all other fields
             elif hasattr(field, "get_accessor_name"):
                 if not field_value:
-                    data[field.get_accessor_name()] = None
+                    pass
                 elif isinstance(field_value, dict):
                     data[field.get_accessor_name()] = list(Deserializer([field_value], **options))[0].object
                 else:
