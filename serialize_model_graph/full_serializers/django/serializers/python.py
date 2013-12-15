@@ -302,7 +302,9 @@ def Deserializer(object_list, **options):
 
             # Handle all other fields
             elif hasattr(field, "get_accessor_name"):
-                if isinstance(field_value, dict):
+                if not field_value:
+                    data[field.get_accessor_name()] = None
+                elif isinstance(field_value, dict):
                     data[field.get_accessor_name()] = list(Deserializer([field_value], **options))[0].object
                 else:
                     raise NotImplementedError
